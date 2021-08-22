@@ -16,38 +16,38 @@ void Hooks::Install()
 
 void Hooks::InstallDeviceConnectHook()
 {
-	constexpr REL::ID offset1{ 67242 };
-	REL::Relocation<std::uintptr_t> hook1{ offset1, 0xBE };
-	REL::safe_write<std::uint8_t>(hook1.address(), nop6);
+	constexpr REL::ID InputManager_ProcessEvent_offset{ 67242 };
+	REL::Relocation<std::uintptr_t> hook{ InputManager_ProcessEvent_offset, 0xBE };
+	REL::safe_write<std::uint8_t>(hook.address(), nop6);
 }
 
 void Hooks::InstallInputManagerHook()
 {
-	constexpr REL::ID offset2{ 67313 };
-	REL::Relocation<std::uintptr_t> hook2{ offset2, 0xF6 };
-	REL::safe_write<std::uint8_t>(hook2.address(), nop5);
+	constexpr REL::ID BSInputDeviceManager_Initialize_offset{ 67313 };
+	REL::Relocation<std::uintptr_t> hook{ BSInputDeviceManager_Initialize_offset, 0xF6 };
+	REL::safe_write<std::uint8_t>(hook.address(), nop5);
 }
 
 void Hooks::InstallUsingGamepadHook()
 {
 	auto& trampoline = SKSE::GetTrampoline();
 
-	constexpr REL::ID offset3{ 67320 };
-	REL::Relocation<std::uintptr_t> hook3{ offset3, 0xD };
-	trampoline.write_call<6>(hook3.address(), IsUsingGamepad);
+	constexpr REL::ID BSInputDeviceManager_IsUsingGamepad_offset{ 67320 };
+	REL::Relocation<std::uintptr_t> hook{ BSInputDeviceManager_IsUsingGamepad_offset, 0xD };
+	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
 }
 
 void Hooks::InstallGamepadCursorHook()
 {
 	auto& trampoline = SKSE::GetTrampoline();
 
-	constexpr REL::ID offset4{ 67321 };
-	REL::Relocation<std::uintptr_t> hook4{ offset4, 0xD };
-	trampoline.write_call<6>(hook4.address(), IsUsingGamepad);
+	constexpr REL::ID BSInputDeviceManager_GamepadControlsCursor_offset{ 67321 };
+	REL::Relocation<std::uintptr_t> hook{ BSInputDeviceManager_GamepadControlsCursor_offset, 0xD };
+	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
 }
 
 bool Hooks::IsUsingGamepad()
 {
 	auto inputEventHandler = InputEventHandler::GetSingleton();
-	return inputEventHandler->IsUsingGamepad();
+	return inputEventHandler && inputEventHandler->IsUsingGamepad();
 }
