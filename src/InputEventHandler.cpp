@@ -1,4 +1,12 @@
 #include "InputEventHandler.h"
+#include "Extensions.h"
+
+InputEventHandler::InputEventHandler()
+{
+	const auto deviceManager = RE::BSInputDeviceManager::GetSingleton();
+	const auto gamepadHandler = deviceManager ? deviceManager->GetGamepadHandler() : nullptr;
+	_usingGamepad = gamepadHandler && gamepadHandler->IsEnabled();
+}
 
 auto InputEventHandler::GetSingleton() -> InputEventHandler*
 {
@@ -21,7 +29,7 @@ auto InputEventHandler::ProcessEvent(
 {
 	auto inputEvent = a_event ? *a_event : nullptr;
 	if (inputEvent) {
-		auto device = inputEvent->GetDevice();
+		const auto device = inputEvent->GetDevice();
 		switch (device) {
 		case RE::INPUT_DEVICE::kKeyboard:
 		case RE::INPUT_DEVICE::kMouse:
@@ -34,12 +42,21 @@ auto InputEventHandler::ProcessEvent(
 					playerControls->data.lookInputVec.y = 0.0f;
 				}
 
+				SetGamepadRumbleEnabled(false);
+
 				RefreshMenus();
 			}
 			break;
 		case RE::INPUT_DEVICE::kGamepad:
 			if (!_usingGamepad) {
 				_usingGamepad = true;
+
+				if (const auto iniPrefs = RE::INIPrefSettingCollection::GetSingleton()) {
+					if (const auto setting = iniPrefs->GetSetting("bGamePadRumble:Controls")) {
+						SetGamepadRumbleEnabled(setting->GetBool());
+					}
+				}
+
 				RefreshMenus();
 			}
 			break;
@@ -56,7 +73,7 @@ bool InputEventHandler::IsUsingGamepad() const
 
 void InputEventHandler::RefreshMenus()
 {
-	auto ui = RE::UI::GetSingleton();
+	const auto ui = RE::UI::GetSingleton();
 	for (auto& menu : ui->menuStack) {
 		if (menu) {
 			menu->RefreshPlatform();

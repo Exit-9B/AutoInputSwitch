@@ -14,6 +14,8 @@ public:
 	bool IsUsingGamepad() const;
 
 private:
+	InputEventHandler();
+
 	void RefreshMenus();
 
 	bool _usingGamepad;
