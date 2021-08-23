@@ -76,14 +76,11 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
 
 set(Boost_USE_STATIC_LIBS ON)
 
-add_compile_definitions(SKSE_SUPPORT_XBYAK)
-
 # ---- Dependencies ----
 
 add_subdirectory(extern/CommonLibSSE CommonLibSSE)
 
 find_package(spdlog REQUIRED)
-find_package(xbyak REQUIRED)
 
 # ---- Add source files ----
 

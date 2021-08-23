@@ -10,6 +10,7 @@ void Hooks::Install()
 	InstallInputManagerHook();
 	InstallUsingGamepadHook();
 	InstallGamepadCursorHook();
+	InstallGamepadDeviceEnabledHook();
 
 	logger::info("Installed all hooks"sv);
 }
@@ -46,8 +47,33 @@ void Hooks::InstallGamepadCursorHook()
 	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
 }
 
+void Hooks::InstallGamepadDeviceEnabledHook()
+{
+	REL::Relocation<std::uintptr_t> BSPCGamepadDeviceHandler_Vtbl{ REL::ID{ 560029 } };
+	BSPCGamepadDeviceHandler_Vtbl.write_vfunc(0x8, IsGamepadDeviceEnabled);
+}
+
 bool Hooks::IsUsingGamepad()
 {
 	auto inputEventHandler = InputEventHandler::GetSingleton();
 	return inputEventHandler && inputEventHandler->IsUsingGamepad();
+}
+
+bool Hooks::IsGamepadDeviceEnabled(RE::BSPCGamepadDeviceHandler* a_device)
+{
+	bool isEnabled = a_device->currentPCGamePadDelegate != nullptr;
+
+	if (isEnabled) {
+		auto playerControls = RE::PlayerControls::GetSingleton();
+		bool playerRemapMode = playerControls && playerControls->data.remapMode;
+
+		auto menuControls = RE::MenuControls::GetSingleton();
+		bool menuRemapMode = menuControls && menuControls->remapMode;
+
+		if (playerRemapMode || menuRemapMode) {
+			return IsUsingGamepad();
+		}
+	}
+
+	return isEnabled;
 }

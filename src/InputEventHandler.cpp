@@ -24,8 +24,7 @@ void InputEventHandler::Register()
 
 auto InputEventHandler::ProcessEvent(
 	const Event* a_event,
-	[[maybe_unused]] RE::BSTEventSource<Event>* a_eventSource)
-	-> RE::BSEventNotifyControl
+	[[maybe_unused]] RE::BSTEventSource<Event>* a_eventSource) -> RE::BSEventNotifyControl
 {
 	auto inputEvent = a_event ? *a_event : nullptr;
 	if (inputEvent) {
