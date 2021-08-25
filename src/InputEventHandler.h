@@ -18,5 +18,7 @@ private:
 
 	void RefreshMenus();
 
+	void ComputeMouseLookVector(std::int32_t a_mouseInputX, std::int32_t a_mouseInputY);
+
 	bool _usingGamepad;
 };

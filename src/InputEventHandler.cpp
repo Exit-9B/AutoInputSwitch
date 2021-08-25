@@ -35,13 +35,13 @@ auto InputEventHandler::ProcessEvent(
 			if (_usingGamepad) {
 				_usingGamepad = false;
 
-				// Fix for hyper-sensitive mouse
-				if (auto playerControls = RE::PlayerControls::GetSingleton()) {
-					playerControls->data.lookInputVec.x = 0.0f;
-					playerControls->data.lookInputVec.y = 0.0f;
-				}
-
 				SetGamepadRumbleEnabled(false);
+
+				if (auto mouseMoveEvent = skyrim_cast<RE::MouseMoveEvent*>(inputEvent)) {
+					ComputeMouseLookVector(
+						mouseMoveEvent->mouseInputX,
+						mouseMoveEvent->mouseInputY);
+				}
 
 				RefreshMenus();
 			}
@@ -50,11 +50,8 @@ auto InputEventHandler::ProcessEvent(
 			if (!_usingGamepad) {
 				_usingGamepad = true;
 
-				if (const auto iniPrefs = RE::INIPrefSettingCollection::GetSingleton()) {
-					if (const auto setting = iniPrefs->GetSetting("bGamePadRumble:Controls")) {
-						SetGamepadRumbleEnabled(setting->GetBool());
-					}
-				}
+				static REL::Relocation<bool*> gamepadRumble{ REL::ID(509500) };
+				SetGamepadRumbleEnabled(*gamepadRumble.get());
 
 				RefreshMenus();
 			}
@@ -78,4 +75,29 @@ void InputEventHandler::RefreshMenus()
 			menu->RefreshPlatform();
 		}
 	}
+}
+
+void InputEventHandler::ComputeMouseLookVector(
+	std::int32_t a_mouseInputX,
+	std::int32_t a_mouseInputY)
+{
+	auto playerControls = RE::PlayerControls::GetSingleton();
+
+	if (!playerControls)
+		return;
+
+	RE::NiPoint2& lookVec = playerControls->data.lookInputVec;
+
+	static REL::Relocation<float*> iniPref_fMouseHeadingSensitivity{ REL::ID(509517) };
+	static REL::Relocation<float*> ini_fMouseHeadingXScale{ REL::ID(509519) };
+	static REL::Relocation<float*> ini_fMouseHeadingYScale{ REL::ID(509521) };
+	static REL::Relocation<float*> secondsSinceLastFrameRealTime{ REL::ID(523661) };
+
+	float userSensitivity = *iniPref_fMouseHeadingSensitivity.get();
+	float xScale = *ini_fMouseHeadingXScale.get();
+	float yScale = *ini_fMouseHeadingYScale.get() / 42.5f;
+	float timeDelta = *secondsSinceLastFrameRealTime.get();
+
+	lookVec.x = ((userSensitivity * xScale) / timeDelta) * a_mouseInputX;
+	lookVec.y = ((userSensitivity * yScale) / timeDelta) * -a_mouseInputY;
 }
