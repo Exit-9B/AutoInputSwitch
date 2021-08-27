@@ -69,11 +69,17 @@ bool InputEventHandler::IsUsingGamepad() const
 
 void InputEventHandler::RefreshMenus()
 {
-	const auto ui = RE::UI::GetSingleton();
-	for (auto& menu : ui->menuStack) {
-		if (menu) {
-			menu->RefreshPlatform();
-		}
+	auto task = SKSE::GetTaskInterface();
+	if (task) {
+		task->AddUITask([]
+			{
+				const auto ui = RE::UI::GetSingleton();
+				for (auto& menu : ui->menuStack) {
+					if (menu) {
+						menu->RefreshPlatform();
+					}
+				}
+			});
 	}
 }
 
