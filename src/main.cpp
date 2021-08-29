@@ -43,6 +43,8 @@ extern "C" DLLEXPORT bool SKSEAPI
 		return false;
 	}
 
+	spdlog::default_logger()->flush();
+
 	return true;
 }
 
@@ -66,6 +68,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 				break;
 			}
 		});
+
+	spdlog::default_logger()->flush();
 
 	return true;
 }
