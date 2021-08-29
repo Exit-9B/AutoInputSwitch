@@ -16,9 +16,11 @@ public:
 private:
 	InputEventHandler();
 
-	void RefreshMenus();
+	static void RefreshMenus();
 
-	void ComputeMouseLookVector(std::int32_t a_mouseInputX, std::int32_t a_mouseInputY);
+	static void DoRefreshMenus();
+
+	static void ComputeMouseLookVector(std::int32_t a_mouseInputX, std::int32_t a_mouseInputY);
 
 	bool _usingGamepad;
 };

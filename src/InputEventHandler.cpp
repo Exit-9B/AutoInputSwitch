@@ -71,15 +71,17 @@ void InputEventHandler::RefreshMenus()
 {
 	auto task = SKSE::GetTaskInterface();
 	if (task) {
-		task->AddUITask([]
-			{
-				const auto ui = RE::UI::GetSingleton();
-				for (auto& menu : ui->menuStack) {
-					if (menu) {
-						menu->RefreshPlatform();
-					}
-				}
-			});
+		task->AddUITask(DoRefreshMenus);
+	}
+}
+
+void InputEventHandler::DoRefreshMenus()
+{
+	const auto ui = RE::UI::GetSingleton();
+	for (auto& menu : ui->menuStack) {
+		if (menu) {
+			menu->RefreshPlatform();
+		}
 	}
 }
 
