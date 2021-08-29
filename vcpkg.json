@@ -1,6 +1,6 @@
 {
   "name": "autoinputswitch",
-  "version-string": "1.0.0",
+  "version-string": "1.1.1",
   "description": "Automatically switch between gamepad and mouse/keyboard control",
   "homepage": "https://github.com/Exit-9B/AutoInputSwitch",
   "license": "MIT",
