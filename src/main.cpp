@@ -1,5 +1,4 @@
 #include "Hooks.h"
-#include "InputEventHandler.h"
 
 extern "C" DLLEXPORT bool SKSEAPI
 	SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
@@ -54,20 +53,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	logger::info("{} loaded"sv, Version::PROJECT);
 
 	SKSE::Init(a_skse);
-	SKSE::AllocTrampoline(8);
 
 	Hooks::Install();
-
-	auto messaging = SKSE::GetMessagingInterface();
-	messaging->RegisterListener(
-		[](SKSE::MessagingInterface::Message* a_msg)
-		{
-			switch (a_msg->type) {
-			case SKSE::MessagingInterface::kInputLoaded:
-				InputEventHandler::GetSingleton()->Register();
-				break;
-			}
-		});
 
 	spdlog::default_logger()->flush();
 
