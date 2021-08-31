@@ -1,11 +1,29 @@
 #include "InputEventHandler.h"
 #include "Extensions.h"
+#include "ini.h"
 
 InputEventHandler::InputEventHandler()
 {
 	const auto deviceManager = RE::BSInputDeviceManager::GetSingleton();
 	const auto gamepadHandler = deviceManager ? deviceManager->GetGamepadHandler() : nullptr;
 	_usingGamepad = gamepadHandler && gamepadHandler->IsEnabled();
+
+	// Config File Read
+	mINI::INIFile file("Data/SKSE/Plugins/AutoInputSwitch.ini");
+	mINI::INIStructure ini;
+	bool readSuccess = file.read(ini);
+	if (!readSuccess) {
+		ini["default"]["analogkeyboard"] = "false";
+		file.generate(ini);
+	}
+	file.read(ini);
+	std::string& analogKeyboardAsString = ini["default"]["analogkeyboard"];
+	if (analogKeyboardAsString == "true") {
+		analogKeyboard = true;
+	}
+	else {
+		analogKeyboard = false;
+	}
 }
 
 auto InputEventHandler::GetSingleton() -> InputEventHandler*
@@ -53,7 +71,9 @@ auto InputEventHandler::ProcessEvent(
 				static REL::Relocation<bool*> gamepadRumble{ REL::ID(509500) };
 				SetGamepadRumbleEnabled(*gamepadRumble.get());
 
-				RefreshMenus();
+				if (!analogKeyboard) {
+					RefreshMenus();
+				}
 			}
 			break;
 		}

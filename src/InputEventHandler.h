@@ -13,6 +13,8 @@ public:
 
 	bool IsUsingGamepad() const;
 
+	bool analogKeyboard;
+
 private:
 	InputEventHandler();
 
