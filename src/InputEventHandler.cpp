@@ -50,7 +50,7 @@ auto InputEventHandler::ProcessEvent(
 			if (!_usingGamepad) {
 				_usingGamepad = true;
 
-				static REL::Relocation<bool*> gamepadRumble{ REL::ID(509500) };
+				static REL::Relocation<bool*> gamepadRumble{ REL::ID(509501) };
 				SetGamepadRumbleEnabled(*gamepadRumble.get());
 
 				RefreshMenus();
