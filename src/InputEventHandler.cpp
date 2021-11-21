@@ -1,5 +1,6 @@
 #include "InputEventHandler.h"
 #include "Extensions.h"
+#include "Offsets.h"
 
 InputEventHandler::InputEventHandler()
 {
@@ -50,7 +51,9 @@ auto InputEventHandler::ProcessEvent(
 			if (!_usingGamepad) {
 				_usingGamepad = true;
 
-				static REL::Relocation<bool*> gamepadRumble{ REL::ID(509501) };
+				static REL::Relocation<bool*> gamepadRumble{
+					Offset::INIPrefSetting::Controls::bGamepadRumble_Value
+				};
 				SetGamepadRumbleEnabled(*gamepadRumble.get());
 
 				RefreshMenus();
@@ -96,14 +99,22 @@ void InputEventHandler::ComputeMouseLookVector(
 
 	RE::NiPoint2& lookVec = playerControls->data.lookInputVec;
 
-	static REL::Relocation<float*> iniPref_fMouseHeadingSensitivity{ REL::ID(509517) };
-	static REL::Relocation<float*> ini_fMouseHeadingXScale{ REL::ID(509519) };
-	static REL::Relocation<float*> ini_fMouseHeadingYScale{ REL::ID(509521) };
-	static REL::Relocation<float*> secondsSinceLastFrameRealTime{ REL::ID(523661) };
+	static REL::Relocation<float*> fMouseHeadingSensitivity{
+		Offset::INIPrefSetting::Controls::fMouseHeadingSensitivity_Value
+	};
+	static REL::Relocation<float*> fMouseHeadingXScale{
+		Offset::INISetting::Controls::fMouseHeadingXScale_Value
+	};
+	static REL::Relocation<float*> fMouseHeadingYScale{
+		Offset::INISetting::Controls::fMouseHeadingYScale_Value
+	};
+	static REL::Relocation<float*> secondsSinceLastFrameRealTime{
+		Offset::SecondsSinceLastFrameRealTime
+	};
 
-	float userSensitivity = *iniPref_fMouseHeadingSensitivity.get();
-	float xScale = *ini_fMouseHeadingXScale.get();
-	float yScale = *ini_fMouseHeadingYScale.get() / 42.5f;
+	float userSensitivity = *fMouseHeadingSensitivity.get();
+	float xScale = *fMouseHeadingXScale.get();
+	float yScale = *fMouseHeadingYScale.get() / 42.5f;
 	float timeDelta = *secondsSinceLastFrameRealTime.get();
 
 	lookVec.x = ((userSensitivity * xScale) / timeDelta) * a_mouseInputX;

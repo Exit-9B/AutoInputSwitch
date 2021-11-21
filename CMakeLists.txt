@@ -84,14 +84,12 @@ find_package(spdlog REQUIRED)
 
 # ---- Add source files ----
 
-include (cmake/headerlist.cmake)
 include (cmake/sourcelist.cmake)
 
 source_group(
 	TREE
 		${CMAKE_CURRENT_SOURCE_DIR}
 	FILES
-		${HEADERS}
 		${SOURCES}
 )
 
@@ -107,7 +105,6 @@ source_group(
 add_library(
 	${PROJECT_NAME}
 	SHARED
-	${HEADERS}
 	${SOURCES}
 	${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
 	${CMAKE_CURRENT_BINARY_DIR}/version.rc
