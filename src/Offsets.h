@@ -4,19 +4,19 @@ namespace Offset
 {
 	namespace BSInputDeviceManager
 	{
-		// SkyrimSE 1.5.97.0: 0xC14EC0
-		inline constexpr REL::ID Initialize(67313);
+		// SkyrimSE 1.6.318.0: 0xC3AF10
+		inline constexpr REL::ID Initialize(68615);
 	}
 
 	namespace BSPCGamepadDeviceHandler
 	{
-		// SkyrimSE 1.5.97.0: 0x175E848
-		inline constexpr REL::ID Vtbl(560029);
+		// SkyrimSE 1.6.318.0: 0x184EC10
+		inline constexpr REL::ID Vtbl(236813);
 	}
 
 	namespace InputManager
 	{
-		// SkyrimSE 1.5.97.0: 0x2F6B94C
-		inline constexpr REL::ID ProcessEvent(67242);
+		// SkyrimSE 1.6.318.0: 0xC375C0
+		inline constexpr REL::ID ProcessEvent(68542);
 	}
 }

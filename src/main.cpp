@@ -1,14 +1,13 @@
 #include "Hooks.h"
 
-extern "C" DLLEXPORT bool SKSEAPI
-	SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+void InitLogger()
 {
 #ifndef NDEBUG
 	auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 #else
 	auto path = logger::log_directory();
 	if (!path) {
-		return false;
+		return;
 	}
 
 	*path /= fmt::format("{}.log"sv, Version::PROJECT);
@@ -27,26 +26,18 @@ extern "C" DLLEXPORT bool SKSEAPI
 	spdlog::set_default_logger(std::move(log));
 	spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
 
-	a_info->infoVersion = SKSE::PluginInfo::kVersion;
-	a_info->name = Version::PROJECT.data();
-	a_info->version = Version::MAJOR;
-
-	if (a_skse->IsEditor()) {
-		logger::critical("Loaded in editor, marking as incompatible"sv);
-		return false;
-	}
-
-	const auto ver = a_skse->RuntimeVersion();
-	if (ver < SKSE::RUNTIME_1_5_39) {
-		logger::critical(FMT_STRING("Unsupported runtime version {}"sv), ver.string());
-		return false;
-	}
-
-	spdlog::default_logger()->flush();
-
-	return true;
+	logger::info(FMT_STRING("{} v{}"), Version::PROJECT, Version::NAME);
 }
 
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version =
+[]() {
+	SKSE::PluginVersionData v{};
+	v.pluginVersion = Version::MAJOR;
+	v.PluginName(Version::PROJECT);
+	v.AuthorName("Parapets"sv);
+	v.UsesAddressLibrary(true);
+	return v;
+}();
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
