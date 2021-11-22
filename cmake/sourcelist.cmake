@@ -5,6 +5,7 @@ set(SOURCES ${SOURCES}
 	src/Hooks.h
 	src/InputEventHandler.cpp
 	src/InputEventHandler.h
+	src/Offsets.h
 	src/PCH.cpp
 	src/PCH.h
 	src/main.cpp
