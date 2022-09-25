@@ -51,10 +51,10 @@ auto InputEventHandler::ProcessEvent(
 			if (!_usingGamepad) {
 				_usingGamepad = true;
 
-				static REL::Relocation<bool*> gamepadRumble{
-					Offset::INIPrefSetting::Controls::bGamepadRumble_Value
+				static REL::Relocation<RE::Setting*> gamepadRumble{
+					Offset::INIPrefSetting::Controls::bGamepadRumble
 				};
-				SetGamepadRumbleEnabled(*gamepadRumble.get());
+				SetGamepadRumbleEnabled(gamepadRumble->GetBool());
 
 				RefreshMenus();
 			}
@@ -99,22 +99,22 @@ void InputEventHandler::ComputeMouseLookVector(
 
 	RE::NiPoint2& lookVec = playerControls->data.lookInputVec;
 
-	static REL::Relocation<float*> fMouseHeadingSensitivity{
-		Offset::INIPrefSetting::Controls::fMouseHeadingSensitivity_Value
+	static REL::Relocation<RE::Setting*> fMouseHeadingSensitivity{
+		Offset::INIPrefSetting::Controls::fMouseHeadingSensitivity
 	};
-	static REL::Relocation<float*> fMouseHeadingXScale{
-		Offset::INISetting::Controls::fMouseHeadingXScale_Value
+	static REL::Relocation<RE::Setting*> fMouseHeadingXScale{
+		Offset::INISetting::Controls::fMouseHeadingXScale
 	};
-	static REL::Relocation<float*> fMouseHeadingYScale{
-		Offset::INISetting::Controls::fMouseHeadingYScale_Value
+	static REL::Relocation<RE::Setting*> fMouseHeadingYScale{
+		Offset::INISetting::Controls::fMouseHeadingYScale
 	};
 	static REL::Relocation<float*> secondsSinceLastFrameRealTime{
 		Offset::SecondsSinceLastFrameRealTime
 	};
 
-	float userSensitivity = *fMouseHeadingSensitivity.get();
-	float xScale = *fMouseHeadingXScale.get();
-	float yScale = *fMouseHeadingYScale.get() / 42.5f;
+	float userSensitivity = fMouseHeadingSensitivity->GetFloat();
+	float xScale = fMouseHeadingXScale->GetFloat();
+	float yScale = fMouseHeadingYScale->GetFloat() / 42.5f;
 	float timeDelta = *secondsSinceLastFrameRealTime.get();
 
 	lookVec.x = ((userSensitivity * xScale) / timeDelta) * a_mouseInputX;
