@@ -22,10 +22,10 @@ namespace Offset
 	{
 		namespace Controls
 		{
-			// SkyrimSE 1.6.318.0: 0x1E85C40
-			inline constexpr REL::ID fMouseHeadingXScale_Value(381990);
-			// SkyrimSE 1.6.318.0: 0x1E85C58
-			inline constexpr REL::ID fMouseHeadingYScale_Value(381993);
+			// SkyrimSE 1.6.318.0: 0x1E85C38
+			inline constexpr REL::ID fMouseHeadingXScale(381989);
+			// SkyrimSE 1.6.318.0: 0x1E85C50
+			inline constexpr REL::ID fMouseHeadingYScale(381992);
 		}
 	}
 
@@ -33,10 +33,10 @@ namespace Offset
 	{
 		namespace Controls
 		{
-			// SkyrimSE 1.6.318.0: 0x1E85C28
-			inline constexpr REL::ID fMouseHeadingSensitivity_Value(381987);
-			// SkyrimSE 1.6.318.0: 0x1E85B68
-			inline constexpr REL::ID bGamepadRumble_Value(381963);
+			// SkyrimSE 1.6.318.0: 0x1E85C20
+			inline constexpr REL::ID fMouseHeadingSensitivity(381986);
+			// SkyrimSE 1.6.318.0: 0x1E85B60
+			inline constexpr REL::ID bGamepadRumble(381962);
 		}
 	}
 

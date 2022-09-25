@@ -1,6 +1,8 @@
 #pragma once
 
-class InputEventHandler : public RE::BSInputDeviceManager::Sink
+#include "Platform.h"
+
+class InputEventHandler final : public RE::BSInputDeviceManager::Sink
 {
 public:
 	using Event = RE::InputEvent*;
@@ -22,5 +24,6 @@ private:
 
 	static void ComputeMouseLookVector(std::int32_t a_mouseInputX, std::int32_t a_mouseInputY);
 
+	Platform _preferredPlatform;
 	bool _usingGamepad;
 };

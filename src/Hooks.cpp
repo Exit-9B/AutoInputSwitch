@@ -10,19 +10,29 @@ void Hooks::Install()
 	InstallGamepadCursorHook();
 	InstallGamepadDeviceEnabledHook();
 
-	logger::info("Installed all hooks"sv);
+	logger::info("Finished installing hooks"sv);
 }
 
 void Hooks::InstallDeviceConnectHook()
 {
 	REL::Relocation<std::uintptr_t> hook{ Offset::InputManager::ProcessEvent, 0x7E };
-	REL::safe_fill(hook.address(), REL::NOP, 0x6);
+	if (REL::make_pattern<"88 87 21 01 00 00">().match(hook.address())) {
+		REL::safe_fill(hook.address(), REL::NOP, 0x6);
+	}
+	else {
+		logger::critical("Failed to install ProcessEvent hook"sv);
+	}
 }
 
 void Hooks::InstallInputManagerHook()
 {
 	REL::Relocation<std::uintptr_t> hook{ Offset::BSInputDeviceManager::Initialize, 0x2A9 };
-	REL::safe_fill(hook.address(), REL::NOP, 0x2);
+	if (REL::make_pattern<"B1 01">().match(hook.address())) {
+		REL::safe_fill(hook.address(), REL::NOP, 0x2);
+	}
+	else {
+		logger::critical("Failed to install BSInputDeviceManager hook"sv);
+	}
 }
 
 void Hooks::InstallUsingGamepadHook()
@@ -30,7 +40,12 @@ void Hooks::InstallUsingGamepadHook()
 	auto& trampoline = SKSE::GetTrampoline();
 
 	REL::Relocation<std::uintptr_t> hook{ Offset::BSInputDeviceManager::IsUsingGamepad, 0xD };
-	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	if (REL::make_pattern<"48 8B 01 FF ?? ??">().match(hook.address())) {
+		trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	}
+	else {
+		logger::critical("Failed to install IsUsingGamepad hook"sv);
+	}
 }
 
 void Hooks::InstallGamepadCursorHook()
@@ -40,7 +55,12 @@ void Hooks::InstallGamepadCursorHook()
 	REL::Relocation<std::uintptr_t> hook{
 		Offset::BSInputDeviceManager::GamepadControlsCursor, 0xD
 	};
-	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	if (REL::make_pattern<"48 8B 01 FF ?? ??">().match(hook.address())) {
+		trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	}
+	else {
+		logger::critical("Failed to install GamepadControlsCursor hook"sv);
+	}
 }
 
 void Hooks::InstallGamepadDeviceEnabledHook()

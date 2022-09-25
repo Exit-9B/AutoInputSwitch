@@ -1,52 +1,62 @@
 #include "Hooks.h"
 #include "InputEventHandler.h"
+#include "Settings.h"
 
-void InitLogger()
+namespace
 {
+	void InitializeLog()
+	{
 #ifndef NDEBUG
-	auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
+		auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 #else
-	auto path = logger::log_directory();
-	if (!path) {
-		return;
+		auto path = logger::log_directory();
+		if (!path) {
+			util::report_and_fail("Failed to find standard logging directory"sv);
+		}
+
+		*path /= fmt::format("{}.log"sv, Plugin::NAME);
+		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
+#endif
+
+#ifndef NDEBUG
+		const auto level = spdlog::level::trace;
+#else
+		const auto level = spdlog::level::info;
+#endif
+
+		auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
+		log->set_level(level);
+		log->flush_on(level);
+
+		spdlog::set_default_logger(std::move(log));
+		spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
 	}
-
-	*path /= fmt::format("{}.log"sv, Version::PROJECT);
-	auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
-#endif
-
-	auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
-
-#ifndef NDEBUG
-	log->set_level(spdlog::level::trace);
-#else
-	log->set_level(spdlog::level::info);
-	log->flush_on(spdlog::level::warn);
-#endif
-
-	spdlog::set_default_logger(std::move(log));
-	spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
-
-	logger::info(FMT_STRING("{} v{}"), Version::PROJECT, Version::NAME);
 }
 
-extern "C" DLLEXPORT constinit auto SKSEPlugin_Version =
-[]() {
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []()
+{
 	SKSE::PluginVersionData v{};
-	v.pluginVersion = Version::MAJOR;
-	v.PluginName(Version::PROJECT);
+
+	v.PluginVersion(Plugin::VERSION);
+	v.PluginName(Plugin::NAME);
 	v.AuthorName("Parapets"sv);
+
 	v.UsesAddressLibrary(true);
+	v.HasNoStructUse(true);
+	v.UsesStructsPost629(false);
+
 	return v;
 }();
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
-	InitLogger();
-	logger::info("{} loaded"sv, Version::PROJECT);
+	InitializeLog();
+	logger::info("{} v{}"sv, Plugin::NAME, Plugin::VERSION.string());
 
 	SKSE::Init(a_skse);
 	SKSE::AllocTrampoline(8);
+
+	Settings::GetSingleton()->LoadSettings();
 
 	Hooks::Install();
 
@@ -60,8 +70,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 				break;
 			}
 		});
-
-	spdlog::default_logger()->flush();
 
 	return true;
 }
