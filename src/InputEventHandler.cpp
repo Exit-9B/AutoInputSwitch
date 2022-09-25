@@ -1,6 +1,7 @@
 #include "InputEventHandler.h"
 #include "Extensions.h"
 #include "Offsets.h"
+#include "Settings.h"
 
 InputEventHandler::InputEventHandler()
 {
@@ -17,8 +18,15 @@ auto InputEventHandler::GetSingleton() -> InputEventHandler*
 
 void InputEventHandler::Register()
 {
-	const auto inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
-	if (inputDeviceManager) {
+	_preferredPlatform = Settings::GetSingleton()->PreferredPlatform;
+
+	if (_preferredPlatform == Platform::PC) {
+		_usingGamepad = false;
+		// We don't need to register
+		return;
+	}
+
+	if (const auto inputDeviceManager = RE::BSInputDeviceManager::GetSingleton()) {
 		inputDeviceManager->AddEventSink(this);
 	}
 }
@@ -33,30 +41,37 @@ auto InputEventHandler::ProcessEvent(
 		switch (device) {
 		case RE::INPUT_DEVICE::kKeyboard:
 		case RE::INPUT_DEVICE::kMouse:
-			if (_usingGamepad) {
-				_usingGamepad = false;
+			if (IsUsingGamepad()) {
+				if (_preferredPlatform != Platform::Gamepad) {
+					_usingGamepad = false;
 
-				SetGamepadRumbleEnabled(false);
+					SetGamepadRumbleEnabled(false);
+				}
 
+				// This code should run as well for gamepad users who touch the mouse
 				if (auto mouseMoveEvent = skyrim_cast<RE::MouseMoveEvent*>(inputEvent)) {
 					ComputeMouseLookVector(
 						mouseMoveEvent->mouseInputX,
 						mouseMoveEvent->mouseInputY);
 				}
 
-				RefreshMenus();
+				if (_preferredPlatform != Platform::Gamepad) {
+					RefreshMenus();
+				}
 			}
 			break;
 		case RE::INPUT_DEVICE::kGamepad:
-			if (!_usingGamepad) {
-				_usingGamepad = true;
+			if (!IsUsingGamepad()) {
+				if (_preferredPlatform != Platform::PC) {
+					_usingGamepad = true;
 
-				static REL::Relocation<RE::Setting*> gamepadRumble{
-					Offset::INIPrefSetting::Controls::bGamepadRumble
-				};
-				SetGamepadRumbleEnabled(gamepadRumble->GetBool());
+					static REL::Relocation<RE::Setting*> gamepadRumble{
+						Offset::INIPrefSetting::Controls::bGamepadRumble
+					};
+					SetGamepadRumbleEnabled(gamepadRumble->GetBool());
 
-				RefreshMenus();
+					RefreshMenus();
+				}
 			}
 			break;
 		}
@@ -67,7 +82,20 @@ auto InputEventHandler::ProcessEvent(
 
 bool InputEventHandler::IsUsingGamepad() const
 {
-	return _usingGamepad;
+	switch (_preferredPlatform) {
+	case Platform::PC:
+		return false;
+
+	case Platform::Gamepad:
+		if (const auto inputDeviceManager = RE::BSInputDeviceManager::GetSingleton()) {
+			return inputDeviceManager->IsGamepadEnabled();
+		}
+
+		return false;
+
+	default:
+		return _usingGamepad;
+	}
 }
 
 void InputEventHandler::RefreshMenus()

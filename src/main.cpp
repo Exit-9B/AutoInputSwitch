@@ -1,5 +1,6 @@
 #include "Hooks.h"
 #include "InputEventHandler.h"
+#include "Settings.h"
 
 namespace
 {
@@ -50,6 +51,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	SKSE::Init(a_skse);
 	SKSE::AllocTrampoline(8);
 
+	Settings::GetSingleton()->LoadSettings();
+
 	Hooks::Install();
 
 	auto messaging = SKSE::GetMessagingInterface();
@@ -62,8 +65,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 				break;
 			}
 		});
-
-	spdlog::default_logger()->flush();
 
 	return true;
 }

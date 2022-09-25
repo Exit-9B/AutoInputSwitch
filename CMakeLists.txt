@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(
 	AutoInputSwitch
-	VERSION 1.1.3
+	VERSION 1.2.0
 	LANGUAGES CXX
 )
 
@@ -111,6 +111,7 @@ endif()
 add_subdirectory(extern/CommonLibSSE CommonLibSSE EXCLUDE_FROM_ALL)
 
 find_package(spdlog CONFIG REQUIRED)
+find_path(SIMPLEINI_INCLUDE_DIRS "ConvertUTF.c")
 
 target_link_libraries(
 	${PROJECT_NAME}
@@ -119,10 +120,22 @@ target_link_libraries(
 		spdlog::spdlog
 )
 
+target_include_directories(
+	${PROJECT_NAME}
+	PRIVATE
+		${SIMPLEINI_INCLUDE_DIRS}
+)
+
 install(
 	FILES
 		"$<TARGET_FILE:${PROJECT_NAME}>"
 		"$<TARGET_PDB_FILE:${PROJECT_NAME}>"
+	DESTINATION "SKSE/Plugins"
+)
+
+install(
+	FILES
+		"${CMAKE_CURRENT_SOURCE_DIR}/data/${PROJECT_NAME}.ini"
 	DESTINATION "SKSE/Plugins"
 )
 
