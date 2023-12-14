@@ -15,59 +15,76 @@ void Hooks::Install()
 
 void Hooks::InstallDeviceConnectHook()
 {
-	REL::Relocation<std::uintptr_t> hook{ Offset::InputManager::ProcessEvent, 0x7E };
-	if (REL::make_pattern<"88 87 21 01 00 00">().match(hook.address())) {
-		REL::safe_fill(hook.address(), REL::NOP, 0x6);
+	auto hook = REL::Relocation<std::uintptr_t>(Offset::ControlMap::MapToUserEvent, 0x7E);
+	if (!REL::make_pattern<"88 87">().match(hook.address())) {
+		logger::critical("Failed to install MapToUserEvent hook"sv);
+		return;
 	}
-	else {
-		logger::critical("Failed to install ProcessEvent hook"sv);
-	}
+
+	REL::safe_fill(hook.address(), REL::NOP, 0x6);
+
+	const auto code = std::vector<std::uint8_t>{ 0xB0, 0x00 };
+	REL::safe_write(hook.address(), std::span(code));
 }
 
 void Hooks::InstallInputManagerHook()
 {
-	REL::Relocation<std::uintptr_t> hook{ Offset::BSInputDeviceManager::Initialize, 0x2A9 };
-	if (REL::make_pattern<"B1 01">().match(hook.address())) {
-		REL::safe_fill(hook.address(), REL::NOP, 0x2);
+	static constinit auto pattern = REL::make_pattern<"B1 01 EB 02">();
+	auto hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2B7);
+
+	if (!pattern.match(hook.address())) {
+		hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2A9);
+
+		if (!pattern.match(hook.address())) {
+			logger::critical("Failed to install BSInputDeviceManager hook"sv);
+			return;
+		}
 	}
-	else {
-		logger::critical("Failed to install BSInputDeviceManager hook"sv);
-	}
+
+	REL::safe_fill(hook.address(), REL::NOP, 0x4);
 }
 
 void Hooks::InstallUsingGamepadHook()
 {
 	auto& trampoline = SKSE::GetTrampoline();
 
-	REL::Relocation<std::uintptr_t> hook{ Offset::BSInputDeviceManager::IsUsingGamepad, 0xD };
-	if (REL::make_pattern<"48 8B 01 FF ?? ??">().match(hook.address())) {
-		trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	static constinit auto pattern = REL::make_pattern<"48 8B 01 FF 50 38">();
+	auto hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::QUsingGamepad, 0x20);
+
+	if (!pattern.match(hook.address())) {
+		hook = REL::Relocation<std::uintptr_t>(
+			Offset::BSInputDeviceManager::QUsingGamepad_OLD,
+			0xD);
+
+		if (!pattern.match(hook.address())) {
+			logger::critical("Failed to install qUsingGamepad hook"sv);
+			return;
+		}
 	}
-	else {
-		logger::critical("Failed to install IsUsingGamepad hook"sv);
-	}
+
+	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
 }
 
 void Hooks::InstallGamepadCursorHook()
 {
 	auto& trampoline = SKSE::GetTrampoline();
 
-	REL::Relocation<std::uintptr_t> hook{
-		Offset::BSInputDeviceManager::GamepadControlsCursor, 0xD
-	};
-	if (REL::make_pattern<"48 8B 01 FF ?? ??">().match(hook.address())) {
-		trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	auto hook = REL::Relocation<std::uintptr_t>(
+		Offset::BSInputDeviceManager::IsGamepadConnected,
+		0xD);
+
+	if (!REL::make_pattern<"48 8B 01 FF 50 38">().match(hook.address())) {
+		logger::critical("Failed to install IsGamepadConnected hook"sv);
+		return;
 	}
-	else {
-		logger::critical("Failed to install GamepadControlsCursor hook"sv);
-	}
+
+	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
 }
 
 void Hooks::InstallGamepadDeviceEnabledHook()
 {
-	REL::Relocation<std::uintptr_t> BSPCGamepadDeviceHandler_Vtbl{
-		Offset::BSPCGamepadDeviceHandler::Vtbl
-	};
+	auto BSPCGamepadDeviceHandler_Vtbl = REL::Relocation<std::uintptr_t>(
+		Offset::BSPCGamepadDeviceHandler::Vtbl);
 	BSPCGamepadDeviceHandler_Vtbl.write_vfunc(0x7, IsGamepadDeviceEnabled);
 }
 
