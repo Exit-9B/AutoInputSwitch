@@ -22,6 +22,7 @@ void InputEventHandler::Register()
 
 	if (_preferredPlatform == Platform::PC) {
 		_usingGamepad = false;
+		SetGamepadRumbleEnabled(false);
 		// We don't need to register
 		return;
 	}
