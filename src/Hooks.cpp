@@ -30,10 +30,10 @@ void Hooks::InstallDeviceConnectHook()
 void Hooks::InstallInputManagerHook()
 {
 	static constinit auto pattern = REL::make_pattern<"B1 01 EB 02">();
-	auto hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2B7);
+	auto hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2A9);
 
 	if (!pattern.match(hook.address())) {
-		hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2A9);
+		hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::Ctor, 0x2B7);
 
 		if (!pattern.match(hook.address())) {
 			logger::critical("Failed to install BSInputDeviceManager hook"sv);
@@ -49,12 +49,14 @@ void Hooks::InstallUsingGamepadHook()
 	auto& trampoline = SKSE::GetTrampoline();
 
 	static constinit auto pattern = REL::make_pattern<"48 8B 01 FF 50 38">();
-	auto hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::QUsingGamepad, 0x20);
+	// this ID is gone in 1.6.1130
+	// TODO: revisit this logic when GOG update drops
+	auto hook = REL::Relocation<std::uintptr_t>(
+		Offset::BSInputDeviceManager::QUsingGamepad_OLD,
+		0xD);
 
 	if (!pattern.match(hook.address())) {
-		hook = REL::Relocation<std::uintptr_t>(
-			Offset::BSInputDeviceManager::QUsingGamepad_OLD,
-			0xD);
+		hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::QUsingGamepad, 0x20);
 
 		if (!pattern.match(hook.address())) {
 			logger::critical("Failed to install qUsingGamepad hook"sv);
