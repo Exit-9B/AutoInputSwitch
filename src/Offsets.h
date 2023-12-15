@@ -20,6 +20,12 @@ namespace Offset
 		inline constexpr REL::ID Vtbl(236813);
 	}
 
+	namespace BSWin32SystemUtility
+	{
+		// SkyrimSE 1.6.1130.0: 0x1ABF210
+		inline constexpr REL::ID Vtbl(255953);
+	}
+
 	namespace ControlMap
 	{
 		// SkyrimSE 1.6.318.0: 0xC375C0

@@ -45,8 +45,30 @@ auto InputEventHandler::ProcessEvent(
 	return RE::BSEventNotifyControl::kContinue;
 }
 
+static bool IsRunningOnSteamDeck()
+{
+	static bool hasSteamDeckSupport = []()
+	{
+		// class size increased from 0x180 to 0x210
+		const auto vtbl = REL::Relocation<std::uintptr_t*>(Offset::BSWin32SystemUtility::Vtbl);
+		const auto dtor = vtbl.get()[0];
+		return REL::make_pattern<"BA 10 02 00 00">().match(dtor + 0xA4);
+	}();
+
+	if (!hasSteamDeckSupport) {
+		return false;
+	}
+
+	const auto systemUtility = RE::BSWin32SystemUtility::GetSingleton();
+	return systemUtility && systemUtility->isRunningOnSteamDeck;
+}
+
 bool InputEventHandler::IsUsingGamepad() const
 {
+	if (IsRunningOnSteamDeck()) {
+		return true;
+	}
+
 	switch (_preferredPlatform) {
 	case Platform::PC:
 		return false;
