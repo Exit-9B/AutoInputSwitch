@@ -8,6 +8,7 @@ public:
 	using Event = RE::InputEvent*;
 
 	static auto GetSingleton() -> InputEventHandler*;
+
 	void Register();
 
 	auto ProcessEvent(const Event* a_event, RE::BSTEventSource<Event>* a_eventSource)
@@ -17,6 +18,8 @@ public:
 
 private:
 	InputEventHandler();
+
+	void ProcessInput(const RE::InputEvent& a_event);
 
 	static void RefreshMenus();
 

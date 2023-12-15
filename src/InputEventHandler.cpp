@@ -37,45 +37,9 @@ auto InputEventHandler::ProcessEvent(
 	[[maybe_unused]] RE::BSTEventSource<Event>* a_eventSource) -> RE::BSEventNotifyControl
 {
 	auto inputEvent = a_event ? *a_event : nullptr;
-	if (inputEvent) {
-		const auto device = inputEvent->GetDevice();
-		switch (device) {
-		case RE::INPUT_DEVICE::kKeyboard:
-		case RE::INPUT_DEVICE::kMouse:
-			if (IsUsingGamepad()) {
-				if (_preferredPlatform != Platform::Gamepad) {
-					_usingGamepad = false;
-
-					SetGamepadRumbleEnabled(false);
-				}
-
-				// This code should run as well for gamepad users who touch the mouse
-				if (auto mouseMoveEvent = skyrim_cast<RE::MouseMoveEvent*>(inputEvent)) {
-					ComputeMouseLookVector(
-						mouseMoveEvent->mouseInputX,
-						mouseMoveEvent->mouseInputY);
-				}
-
-				if (_preferredPlatform != Platform::Gamepad) {
-					RefreshMenus();
-				}
-			}
-			break;
-		case RE::INPUT_DEVICE::kGamepad:
-			if (!IsUsingGamepad()) {
-				if (_preferredPlatform != Platform::PC) {
-					_usingGamepad = true;
-
-					static REL::Relocation<RE::Setting*> gamepadRumble{
-						Offset::INIPrefSetting::Controls::bGamepadRumble
-					};
-					SetGamepadRumbleEnabled(gamepadRumble->GetBool());
-
-					RefreshMenus();
-				}
-			}
-			break;
-		}
+	while (inputEvent) {
+		ProcessInput(*inputEvent);
+		inputEvent = inputEvent->next;
 	}
 
 	return RE::BSEventNotifyControl::kContinue;
@@ -96,6 +60,55 @@ bool InputEventHandler::IsUsingGamepad() const
 
 	default:
 		return _usingGamepad;
+	}
+}
+
+void InputEventHandler::ProcessInput(const RE::InputEvent& a_event)
+{
+	if (const auto buttonEvent = a_event.AsButtonEvent()) {
+		if (buttonEvent->IsRepeating()) {
+			return;
+		}
+	}
+
+	const auto device = a_event.GetDevice();
+	switch (device) {
+	case RE::INPUT_DEVICE::kKeyboard:
+	case RE::INPUT_DEVICE::kMouse:
+		if (IsUsingGamepad()) {
+			if (_preferredPlatform != Platform::Gamepad) {
+				_usingGamepad = false;
+
+				SetGamepadRumbleEnabled(false);
+			}
+
+			// This code should run as well for gamepad users who touch the mouse
+			if (const auto mouseMoveEvent = skyrim_cast<const RE::MouseMoveEvent*>(&a_event)) {
+				ComputeMouseLookVector(
+					mouseMoveEvent->mouseInputX,
+					mouseMoveEvent->mouseInputY);
+			}
+
+			if (_preferredPlatform != Platform::Gamepad) {
+				RefreshMenus();
+			}
+		}
+		break;
+
+	case RE::INPUT_DEVICE::kGamepad:
+		if (!IsUsingGamepad()) {
+			if (_preferredPlatform != Platform::PC) {
+				_usingGamepad = true;
+
+				static REL::Relocation<RE::Setting*> gamepadRumble{
+					Offset::INIPrefSetting::Controls::bGamepadRumble
+				};
+				SetGamepadRumbleEnabled(gamepadRumble->GetBool());
+
+				RefreshMenus();
+			}
+		}
+		break;
 	}
 }
 
