@@ -63,12 +63,13 @@ static bool IsRunningOnSteamDeck()
 	return systemUtility && systemUtility->isRunningOnSteamDeck;
 }
 
+bool InputEventHandler::IsSteamDeckOrGamepad() const
+{
+	return IsRunningOnSteamDeck() || IsUsingGamepad();
+}
+
 bool InputEventHandler::IsUsingGamepad() const
 {
-	if (IsRunningOnSteamDeck()) {
-		return true;
-	}
-
 	switch (_preferredPlatform) {
 	case Platform::PC:
 		return false;
@@ -95,23 +96,22 @@ void InputEventHandler::ProcessInput(const RE::InputEvent& a_event)
 
 	const auto device = a_event.GetDevice();
 	switch (device) {
-	case RE::INPUT_DEVICE::kKeyboard:
 	case RE::INPUT_DEVICE::kMouse:
+		if (IsSteamDeckOrGamepad()) {
+			// This code should run as well for gamepad users who touch the mouse
+			if (const auto mouseMoveEvent = skyrim_cast<const RE::MouseMoveEvent*>(&a_event)) {
+				ComputeMouseLookVector(mouseMoveEvent->mouseInputX, mouseMoveEvent->mouseInputY);
+			}
+		}
+		[[fallthrough]];
+
+	case RE::INPUT_DEVICE::kKeyboard:
 		if (IsUsingGamepad()) {
 			if (_preferredPlatform != Platform::Gamepad) {
 				_usingGamepad = false;
 
 				SetGamepadRumbleEnabled(false);
-			}
 
-			// This code should run as well for gamepad users who touch the mouse
-			if (const auto mouseMoveEvent = skyrim_cast<const RE::MouseMoveEvent*>(&a_event)) {
-				ComputeMouseLookVector(
-					mouseMoveEvent->mouseInputX,
-					mouseMoveEvent->mouseInputY);
-			}
-
-			if (_preferredPlatform != Platform::Gamepad) {
 				RefreshMenus();
 			}
 		}

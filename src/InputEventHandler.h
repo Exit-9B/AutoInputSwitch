@@ -14,6 +14,8 @@ public:
 	auto ProcessEvent(const Event* a_event, RE::BSTEventSource<Event>* a_eventSource)
 		-> RE::BSEventNotifyControl override;
 
+	bool IsSteamDeckOrGamepad() const;
+
 	bool IsUsingGamepad() const;
 
 private:

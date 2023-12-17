@@ -6,8 +6,8 @@ void Hooks::Install()
 {
 	InstallDeviceConnectHook();
 	InstallInputManagerHook();
-	InstallUsingGamepadHook();
 	InstallGamepadCursorHook();
+	InstallUsingGamepadHook();
 	InstallGamepadDeviceEnabledHook();
 
 	logger::info("Finished installing hooks"sv);
@@ -59,12 +59,15 @@ void Hooks::InstallUsingGamepadHook()
 		hook = REL::Relocation<std::uintptr_t>(Offset::BSInputDeviceManager::QUsingGamepad, 0x20);
 
 		if (!pattern.match(hook.address())) {
-			logger::critical("Failed to install qUsingGamepad hook"sv);
+			logger::critical("Failed to install QUsingGamepad hook"sv);
 			return;
 		}
 	}
 
-	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	trampoline.write_call<6>(hook.address(), +[]() -> bool
+	{
+		return InputEventHandler::GetSingleton()->IsSteamDeckOrGamepad();
+	});
 }
 
 void Hooks::InstallGamepadCursorHook()
@@ -80,7 +83,10 @@ void Hooks::InstallGamepadCursorHook()
 		return;
 	}
 
-	trampoline.write_call<6>(hook.address(), IsUsingGamepad);
+	trampoline.write_call<6>(hook.address(), +[]() -> bool
+	{
+		return InputEventHandler::GetSingleton()->IsUsingGamepad();
+	});
 }
 
 void Hooks::InstallGamepadDeviceEnabledHook()
@@ -88,12 +94,6 @@ void Hooks::InstallGamepadDeviceEnabledHook()
 	auto BSPCGamepadDeviceHandler_Vtbl = REL::Relocation<std::uintptr_t>(
 		Offset::BSPCGamepadDeviceHandler::Vtbl);
 	BSPCGamepadDeviceHandler_Vtbl.write_vfunc(0x7, IsGamepadDeviceEnabled);
-}
-
-bool Hooks::IsUsingGamepad()
-{
-	auto inputEventHandler = InputEventHandler::GetSingleton();
-	return inputEventHandler && inputEventHandler->IsUsingGamepad();
 }
 
 bool Hooks::IsGamepadDeviceEnabled(RE::BSPCGamepadDeviceHandler* a_device)
@@ -108,7 +108,7 @@ bool Hooks::IsGamepadDeviceEnabled(RE::BSPCGamepadDeviceHandler* a_device)
 		bool menuRemapMode = menuControls && menuControls->remapMode;
 
 		if (playerRemapMode || menuRemapMode) {
-			return IsUsingGamepad();
+			return InputEventHandler::GetSingleton()->IsUsingGamepad();
 		}
 	}
 

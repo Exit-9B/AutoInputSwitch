@@ -19,6 +19,5 @@ namespace Hooks
 	// Trick SKSE StartRemapMode (e.g. for SkyUI MCM) into allowing all inputs
 	void InstallGamepadDeviceEnabledHook();
 
-	bool IsUsingGamepad();
 	bool IsGamepadDeviceEnabled(RE::BSPCGamepadDeviceHandler* a_device);
 }
